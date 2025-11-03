@@ -22,7 +22,7 @@
       166,
       255
     ],
-    "transformToolName": "position",
+    "transformToolName": "view",
     "pivot": "pivot",
     "coordinate": "local",
     "toolsVisibility3d": true
@@ -106,9 +106,9 @@
     },
     "7ef1f5c0-3c94-4b36-9c3a-d1e829b06e3f": {
       "position": {
-        "x": 640,
-        "y": 360,
-        "z": 574.7252893422999
+        "x": 1.6714468099622235,
+        "y": 1.1326698218679219,
+        "z": 18.634318937072788
       },
       "rotation": {
         "x": 0,
@@ -117,9 +117,9 @@
         "w": 1
       },
       "viewCenter": {
-        "x": 640,
-        "y": 360,
-        "z": 0
+        "x": 1.6714468099622235,
+        "y": 1.1326698218679219,
+        "z": 4.706613631061533
       },
       "contentRect": {
         "x": 0,
