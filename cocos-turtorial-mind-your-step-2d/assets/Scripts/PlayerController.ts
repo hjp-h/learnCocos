@@ -12,12 +12,13 @@ export const enum Direction {
   RIGHT = 0,
   LEFT = 2,
 }
+export const BLOCK_SIZE = 80;
 @ccclass("PlayerController")
 export class PlayerController extends Component {
   @property(Animation)
   BodyAnim: Animation = null;
   // 角色移动步长
-  private _moveStep: number = 80;
+  private _moveStep: number = BLOCK_SIZE;
   private _targetPos: Vec3 = new Vec3(0, 0, 0);
   private _curPos: Vec3 = new Vec3(0, 0, 0);
   private _deltaPos: Vec3 = new Vec3(0, 0, 0);
@@ -26,6 +27,8 @@ export class PlayerController extends Component {
   private _jumpSpeed: number = 0;
   private _jumpDirection: Direction = Direction.RIGHT;
   private _isJumping: boolean = false;
+  // 当前跳了多少步
+  private _curMoveIndex: number = 0;
   /**
    * 思路 ： 1. 监听键盘事件 2. 根据键盘事件移动角色
    * 1. 监听键盘事件
@@ -41,7 +44,21 @@ export class PlayerController extends Component {
    *
    */
   start() {
-    input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+    // input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+  }
+
+  reset() {
+    this._curMoveIndex = 0;
+    this.node.getPosition(this._curPos);
+    this._targetPos.set(0, 0, 0);
+  }
+
+  setInputActive(active: boolean) {
+    if (active) {
+      input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+    } else {
+      input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+    }
   }
 
   onMouseUp(event: EventMouse) {
@@ -51,7 +68,8 @@ export class PlayerController extends Component {
       this.jumpByStep(1, Direction.RIGHT);
     } else if (event.getButton() === Direction.LEFT) {
       // 向左跳一步
-      this.jumpByStep(1, Direction.LEFT);
+      //   this.jumpByStep(1, Direction.LEFT);
+      this.jumpByStep(2, Direction.RIGHT);
     }
   }
 
@@ -60,6 +78,10 @@ export class PlayerController extends Component {
       return;
     }
     this._isJumping = true;
+
+    const clipName = dir === Direction.RIGHT ? "oneStep" : "twoStep";
+    const state = this.BodyAnim.getState(clipName);
+    this._totalTime = state.duration;
     // 根据输入设置当前跳跃方向
     this._jumpDirection = dir;
     this._currentTime = 0;
@@ -72,7 +94,6 @@ export class PlayerController extends Component {
         this._curPos,
         new Vec3(this._moveStep * step, 0, 0)
       );
-      this.BodyAnim.play("oneStep");
     } else if (dir === Direction.LEFT) {
       console.log("dir xxxx", dir);
       Vec3.subtract(
@@ -80,8 +101,13 @@ export class PlayerController extends Component {
         this._curPos,
         new Vec3(this._moveStep * step, 0, 0)
       );
-      this.BodyAnim.play("twoStep");
     }
+    this.BodyAnim.play(clipName);
+    this._curMoveIndex += step;
+  }
+
+  onOnceJumpEnd() {
+    this.node.emit("JumpEnd", this._curMoveIndex);
   }
 
   update(deltaTime: number) {
@@ -91,6 +117,8 @@ export class PlayerController extends Component {
         this._isJumping = false;
         // 强制更新终点位置
         this.node.setPosition(this._targetPos);
+        // 跳动结束 发射事件
+        this.onOnceJumpEnd();
       } else {
         this.node.getPosition(this._curPos);
         // 每帧仅在 X 轴更新位移，避免残留 Y/Z 值影响
