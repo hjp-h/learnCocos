@@ -45,6 +45,7 @@ export class PlayerController extends Component {
    */
   start() {
     // input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+    this.BodyAnim.play("pending");
   }
 
   reset() {
@@ -107,6 +108,7 @@ export class PlayerController extends Component {
   }
 
   onOnceJumpEnd() {
+    this.BodyAnim.play("pending");
     this.node.emit("JumpEnd", this._curMoveIndex);
   }
 

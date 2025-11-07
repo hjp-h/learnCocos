@@ -22,9 +22,10 @@ enum GameState {
   GS_END,
 }
 
+let isFirst: boolean = true;
 @ccclass("GameManager")
 export class GameManager extends Component {
-  //预制体 方便复用
+  //预制体 方便复用 装饰器注入
   @property({ type: Prefab })
   public boxPrefab: Prefab | null = null;
   @property({ type: CCInteger })
@@ -33,16 +34,21 @@ export class GameManager extends Component {
 
   @property({ type: Node })
   public startMenu: Node | null = null; // 开始的 UI
+  @property({ type: Node })
+  public gameOverMenu: Node | null = null; // 结束的 UI
   @property({ type: PlayerController })
   public playerCtrl: PlayerController | null = null; // 角色控制器
   @property({ type: Label })
   public stepsLabel: Label | null = null; // 计步器
 
   init() {
-    if (this.startMenu) {
+    if (this.startMenu && isFirst) {
       this.startMenu.active = true;
+      isFirst = false;
     }
-
+    if (this.gameOverMenu) {
+      this.gameOverMenu.active = false;
+    }
     this.generateRoad();
 
     if (this.playerCtrl) {
@@ -125,6 +131,15 @@ export class GameManager extends Component {
   onStartButtonClicked() {
     this.setCurState(GameState.GS_PLAYING);
   }
+  onEndButtonClicked() {
+    if (this.gameOverMenu) {
+      this.gameOverMenu.active = false;
+    }
+    this.setCurState(GameState.GS_INIT);
+    if (!isFirst) {
+      this.setCurState(GameState.GS_PLAYING);
+    }
+  }
 
   onPlayerJumpEnd(moveIndex: number) {
     if (this.stepsLabel) {
@@ -137,7 +152,10 @@ export class GameManager extends Component {
   checkResult(moveIndex: number) {
     if (moveIndex < this.roadLength) {
       if (this._road[moveIndex] === BlockType.BT_NONE) {
-        this.setCurState(GameState.GS_INIT);
+        // this.setCurState(GameState.GS_INIT);
+        if (this.gameOverMenu) {
+          this.gameOverMenu.active = true;
+        }
       }
     } else {
       this.setCurState(GameState.GS_INIT);
